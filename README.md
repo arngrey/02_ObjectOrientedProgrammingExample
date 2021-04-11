@@ -5,7 +5,7 @@
 ## Classes scheme
 ![Alt text](/UML.png?raw=true "Optional Title")
 
-This code sample just shows my understanding of structured programming paradigm.
+This code sample just shows my understanding of structured programming paradigm.  
 Do not consider that code as a best practice example.
 
 ## Assumptions
