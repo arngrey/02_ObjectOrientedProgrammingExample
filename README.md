@@ -3,7 +3,7 @@
 ## This is example of structured programming paradigm.
 
 ## Classes scheme
-![Alt text](/UML.png?raw=true "Optional Title")
+![Alt text](/UML.png)
 
 This code sample just shows my understanding of structured programming paradigm.  
 Do not consider that code as a best practice example.
