@@ -1,6 +1,6 @@
 # 02_ObjectOrientedProgrammingExample
 
-## This is example of structured programming paradigm.
+This is example of structured programming paradigm.
 
 ## Classes scheme
 ![Alt text](/UML.png)
