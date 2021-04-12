@@ -5,7 +5,7 @@ This is example of structured programming paradigm.
 ## Classes scheme
 ![Alt text](/UML.png)
 
-This code sample just shows my understanding of structured programming paradigm.  
+This code sample just shows my understanding of object oriented programming paradigm.  
 Do not consider that code as a best practice example.
 
 ## Assumptions
