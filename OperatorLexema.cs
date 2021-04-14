@@ -23,7 +23,6 @@ namespace _02_ObjectOrientedProgrammingExample
         {
             if (!_binaryOperators.Contains(inputLexema))
             {
-                // Ошибка, неверная строка
                 throw new Exception();
             }
 
@@ -59,7 +58,6 @@ namespace _02_ObjectOrientedProgrammingExample
                 case "/":
                     return firstOperand / secondOperand;
                 default:
-                    // Ошибка в выражении
                     throw new Exception();
             }
         }

@@ -13,7 +13,6 @@ namespace _02_ObjectOrientedProgrammingExample
         {
             if (!double.TryParse(inputLexema, out var parseResult))
             {
-                // Ошибка, неверная строка
                 throw new Exception();
             }
 

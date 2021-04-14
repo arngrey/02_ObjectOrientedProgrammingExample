@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace _02_ObjectOrientedProgrammingExample
 {
     class Expression
     {
-        private Lexemes _infixNotationLexemes;
-        private Lexemes _reversedPolishNotationLexemes;
+        private List<Lexema> _infixNotationLexemes;
+        private List<Lexema> _reversedPolishNotationLexemes;
 
         public Expression(string expressionInInflixNotation)
         {
@@ -20,7 +21,7 @@ namespace _02_ObjectOrientedProgrammingExample
         /// <returns>Выражение в обратной польской нотации.</returns>
         public string GetReversedPolishNotation()
         {
-            return this._reversedPolishNotationLexemes.List
+            return this._reversedPolishNotationLexemes
                 .Aggregate("", (accumulator, lexema) => accumulator + " " + lexema.ToString());
         }
 
@@ -30,9 +31,9 @@ namespace _02_ObjectOrientedProgrammingExample
         /// </summary>
         /// <param name="expressionInInflixNotation">Математическое выражение в инфиксной нотации.</param>
         /// <returns>Массив лексем в порядке инфиксной нотации.</returns>
-        private Lexemes GetInfixNotationLexemes(string expressionInInflixNotation)
+        private List<Lexema> GetInfixNotationLexemes(string expressionInInflixNotation)
         {
-            return new Lexemes(expressionInInflixNotation);
+            return LexemesParser.Parse(expressionInInflixNotation);
         }
 
         /// <summary>
@@ -41,130 +42,38 @@ namespace _02_ObjectOrientedProgrammingExample
         /// </summary>
         /// <param name="infixNotationLexemes">Массив лексем в порядке инфиксной нотации.</param>
         /// <returns>Массив лексем в порядке обратной польской нотации</returns>
-        private Lexemes GetReversedPolishNotationLexemes(Lexemes infixNotationLexemes)
+        private List<Lexema> GetReversedPolishNotationLexemes(List<Lexema> infixNotationLexemes)
         {
-            bool stackIsEmpty;
-            Lexema stackTopLexema;
-
-            var result = new Lexemes();
+            var result = new List<Lexema>();
             var stack = new Stack<Lexema>();
 
-            foreach (Lexema lexema in infixNotationLexemes.List)
+            foreach (Lexema lexema in infixNotationLexemes)
             {
-                // Число - добавляем в выходную очередь
                 if (lexema is NumericLexema)
                 {
-                    result.List.Add(lexema);
+                    result.Add(lexema);
                 }
-                // Открывающаяся скобка - добавляем в стэк
                 else if (lexema is BracketLexema && ((BracketLexema)lexema).IsOpen)
                 {
                     stack.Push(lexema);
                 }
-                // Оператор (О1):
                 else if (lexema is OperatorLexema)
                 {
-                    // Пока на вершине стэка присутствует оператор (О2), приоритет которого выше или равен приоритету текущего оператора, то
-                    //     Перекладываем оператор О2 в выходную очередь
-                    // Помещаем О1 в стэк
-                    OperatorLexema lexemaAsOperator = lexema as OperatorLexema;
-                    bool stackTopLexemaIsOperator = false;
-                    OperatorLexema stackTopLexemaAsOperator;
-                    bool stackTopOperatorHasGraterOrEqualPriorityThanCurrentOperator = false;
-
-                    do
-                    {
-                        stackIsEmpty = stack.IsEmpty;
-                        if (!stackIsEmpty)
-                        {
-                            stackTopLexema = stack.Top();
-                            stackTopLexemaIsOperator = stackTopLexema is OperatorLexema;
-
-                            if (stackTopLexemaIsOperator)
-                            {
-                                stackTopLexemaAsOperator = (OperatorLexema)stackTopLexema;
-                                stackTopOperatorHasGraterOrEqualPriorityThanCurrentOperator = stackTopLexemaAsOperator.HasGraterOrEqualPriorityThan(lexemaAsOperator);
-
-                                if (stackTopOperatorHasGraterOrEqualPriorityThanCurrentOperator)
-                                {
-                                    // Перекладываем оператор О2 в выходную очередь
-                                    result.List.Add(stack.Pop());
-                                }
-                            }
-                        }
-                    } while (!stackIsEmpty && stackTopLexemaIsOperator && stackTopOperatorHasGraterOrEqualPriorityThanCurrentOperator);
-
-                    // Помещаем О1 в стэк
+                    PushOperatorsFromStackToListTillLowerPriorityOperator(stack, result, (OperatorLexema)lexema);
                     stack.Push(lexema);
                 }
-                // Закрывающаяся скобка:
-                else if (lexema is BracketLexema && !((BracketLexema)lexema).IsOpen)
+                else if (lexema is BracketLexema && ((BracketLexema)lexema).IsClose)
                 {
-                    // Пока лексема на вершине стэка не станет открывающейся скобкой, то
-                    //     Если стэк стал пустым - в выражении ошибка
-                    //     Добавляем лексемы-операторы в выходную очередь
-                    // Удаляем из стэка открывающуюся скобку
-                    bool stackTopLexemaIsOpenBracket = false;
-
-                    do
-                    {
-                        stackIsEmpty = stack.IsEmpty;
-                        if (!stackIsEmpty)
-                        {
-                            stackTopLexema = stack.Top();
-                            stackTopLexemaIsOpenBracket = (stackTopLexema is BracketLexema) && ((BracketLexema)stackTopLexema).IsOpen;
-
-                            if (!stackTopLexemaIsOpenBracket)
-                            {
-                                result.List.Add(stack.Pop());
-                            }
-                            else
-                            {
-                                // Удаляем из стэка открывающуюся скобку
-                                stack.Pop();
-                            }
-                        }
-                        else
-                        {
-                            // Ошибка, не встретилась открывающаяся скобка
-                            throw new Exception();
-                        }
-                    } while (!stackIsEmpty && !stackTopLexemaIsOpenBracket);
+                    PushLexemesFromStackToListTillAnOpenBracket(stack, result);
+                    stack.Pop();
                 }
                 else
                 {
-                    // Ошибка, неверная лексема
                     throw new Exception();
                 }
             }
 
-            // Если во входной строке больше не осталось лексем:
-            // Пока в стэке есть операторы:
-            //     Если на вершине стэка скобка - в выражении допущена ошибка
-            //     Добавляем операторы из стэка в выходную очередь
-
-            bool stackTopLexemaIsBracket = false;
-
-            do
-            {
-                stackIsEmpty = stack.IsEmpty;
-                if (!stackIsEmpty)
-                {
-                    stackTopLexema = stack.Top();
-                    stackTopLexemaIsBracket = stackTopLexema is BracketLexema;
-
-                    if (stackTopLexemaIsBracket)
-                    {
-                        // Ошибка в выражении
-                        throw new Exception();
-                    } 
-                    else
-                    {
-                        result.List.Add(stack.Pop());
-                    }
-
-                }
-            } while (!stackIsEmpty);
+            PushLexemesFromStackToList(stack, result);
 
             return result;
         }
@@ -177,23 +86,15 @@ namespace _02_ObjectOrientedProgrammingExample
         {
             var stack = new Stack<Lexema>();
 
-            foreach (Lexema lexema in _reversedPolishNotationLexemes.List)
+            foreach (Lexema lexema in _reversedPolishNotationLexemes)
             {
-                // Если лексема - числовая, то помещаем её на вершину стэка.
                 if (lexema is NumericLexema)
                 {
                     stack.Push(lexema);
                 }
-                // Если лексема - оператор, то:
-                //     Соответствующая операция выполняется над требуемым количеством значений, извлеченных из стэка, взятых в порядке добавления.
-                //     Результат выполнения операции помещаяется на вершину стэка.
                 else if (lexema is OperatorLexema)
                 {
-                    NumericLexema secondOperand = (NumericLexema)stack.Pop();
-                    NumericLexema firstOperand = (NumericLexema)stack.Pop();
-                    OperatorLexema lexemaAsOperator = ((OperatorLexema)lexema);
-                    double value = lexemaAsOperator.Evaluate(firstOperand.Value, secondOperand.Value);
-                    stack.Push(new NumericLexema(value.ToString()));
+                    ApplyOperatorToNumbersFromStackAndPushResult(stack, (OperatorLexema)lexema);
                 }
                 else
                 {
@@ -202,8 +103,98 @@ namespace _02_ObjectOrientedProgrammingExample
                 }
             }
 
-            // После полной обработки входного набора лексем, результат выражения лежит на вершине стэка.
             return ((NumericLexema)stack.Pop()).Value;
+        }
+
+        /// <summary>
+        /// Перекладывает лексемы-операторы из стэка в список пока их приоритет не ниже, чем приоритет у оператора для сравнения.
+        /// </summary>
+        /// <param name="stack">Стэк.</param>
+        /// <param name="list">Список.</param>
+        /// <param name="operatorLexemaToCompare">Оператор, приоритет которого сравнивается с приоритетами операторов из стэка.</param>
+        private static void PushOperatorsFromStackToListTillLowerPriorityOperator(Stack<Lexema> stack, List<Lexema> list, OperatorLexema operatorLexemaToCompare)
+        {
+            while (true)
+            {
+                if (stack.IsEmpty)
+                {
+                    break;
+                }
+
+                if (!(stack.Top() is OperatorLexema))
+                {
+                    break;
+                }
+
+                if (((OperatorLexema)stack.Top()).HasGraterOrEqualPriorityThan(operatorLexemaToCompare))
+                {
+                    list.Add(stack.Pop());
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Перекладывает все лексемы из стэка в список.
+        /// Вызывает исключение, если встретилась скобка.
+        /// </summary>
+        /// <param name="stack">Стэк.</param>
+        /// <param name="list">Список.</param>
+        private static void PushLexemesFromStackToList(Stack<Lexema> stack, List<Lexema> list)
+        {
+            while (!stack.IsEmpty)
+            {
+                if (stack.Top() is BracketLexema)
+                {
+                    throw new Exception();
+                }
+                else
+                {
+                    list.Add(stack.Pop());
+                }
+            };
+        }
+
+        /// <summary>
+        /// Перекладывает лексемы из стэка в список до встречи открывающейся скобки.
+        /// Вызывает исключение, если стэк оказался пустым.
+        /// </summary>
+        /// <param name="stack">Стэк.</param>
+        /// <param name="list">Список.</param>
+        private static void PushLexemesFromStackToListTillAnOpenBracket(Stack<Lexema> stack, List<Lexema> list)
+        {
+            while (true)
+            {
+                if (stack.IsEmpty)
+                {
+                    throw new Exception();
+                }
+
+                if ((stack.Top() is BracketLexema) && ((BracketLexema)stack.Top()).IsOpen)
+                {
+                    break;
+                }
+                else
+                {
+                    list.Add(stack.Pop());
+                }
+            };
+        }
+
+        /// <summary>
+        /// Применить оператор к двум операндам из стэка и записать результат обратно.
+        /// </summary>
+        /// <param name="stack">Стэк.</param>
+        /// <param name="operatorLexema">Применяемый оператор.</param>
+        private static void ApplyOperatorToNumbersFromStackAndPushResult(Stack<Lexema> stack, OperatorLexema operatorLexema)
+        {
+            NumericLexema secondOperand = (NumericLexema)stack.Pop();
+            NumericLexema firstOperand = (NumericLexema)stack.Pop();
+            double value = operatorLexema.Evaluate(firstOperand.Value, secondOperand.Value);
+            stack.Push(new NumericLexema(value.ToString()));
         }
     }
 }

@@ -1,32 +1,16 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace _02_ObjectOrientedProgrammingExample
 {
-    class Lexemes
+    static class LexemesParser
     {
-        /// <summary>
-        /// Возвращает коллекцию лексем.
-        /// </summary>
-        public List<Lexema> List { get; }
-
-        public Lexemes()
-        {
-            this.List = new List<Lexema>();
-        }
-
-        public Lexemes(string inputString)
-        {
-            this.List = GetLexemes(new Symbols(inputString));
-        }
-
-        /// <summary>
-        /// Получает список лексем из коллекции символов.
-        /// </summary>
-        /// <param name="symbols">Коллекция символов.</param>
-        private List<Lexema> GetLexemes(Symbols symbols)
+        static public List<Lexema> Parse(string expressionInInfixNotation)
         {
             var result = new List<Lexema>();
+
+            var symbols = new Symbols(expressionInInfixNotation);
 
             int i = 0;
             while (i < symbols.Count)
@@ -57,7 +41,6 @@ namespace _02_ObjectOrientedProgrammingExample
                 }
                 else
                 {
-                    // Ошибка, неопознанная лексема
                     throw new Exception();
                 }
             }
