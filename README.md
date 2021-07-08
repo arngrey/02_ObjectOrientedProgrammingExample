@@ -1,4 +1,4 @@
-# 02_ObjectOrientedProgrammingExample
+# ObjectOrientedProgrammingExample
 
 This is example of structured programming paradigm.
 
